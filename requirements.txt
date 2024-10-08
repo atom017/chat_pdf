@@ -1,0 +1,6 @@
+Flask
+langchain
+langchain-community
+langchain-groq
+python-dotenv
+PyMuPDF

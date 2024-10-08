@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat with PDF</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f9f9f9;
+            color: #333;
+        }
+        h1 {
+            text-align: center;
+            color: #4A90E2;
+        }
+        form {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+        input[type="file"] {
+            margin-right: 10px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            background-color: #4A90E2;
+            color: white;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #357ABD;
+        }
+        #chatArea {
+            display: none;
+            margin-top: 20px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            background-color: white;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            height: 500px; /* Fixed height */
+            display: flex;
+            flex-direction: column;
+            max-width: 800px; /* Set a maximum width */
+            margin-left: auto; /* Center the chat area */
+            margin-right: auto; /* Center the chat area */
+        }
+        #messagesContainer {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            border-bottom: 1px solid #ccc; /* Separator */
+        }
+        #userInputContainer {
+            display: flex;
+            padding: 10px;
+            background-color: #fff;
+            border-top: 1px solid #ccc; /* Separator */
+        }
+        #userInput {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            margin-right: 10px;
+        }
+        .message {
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 10px;
+            max-width: 70%;
+            clear: both;
+        }
+        .user-message {
+            background-color: #4A90E2;
+            color: white;
+            float: right;
+            text-align: right;
+        }
+        .assistant-message {
+            background-color: #f0f0f0;
+            color: black;
+            float: left;
+            text-align: left;
+        }
+        #notificationArea {
+            color: green;
+            margin: 10px 0;
+            text-align: center;
+        }
+        .error {
+            color: red;
+        }
+    </style>
+</head>
+<body>
+    <h1>Chat with PDF</h1>
+    <form id="uploadForm">
+        <input type="file" name="file" accept=".pdf" required>
+        <button type="submit">Upload PDF</button>
+    </form>
+
+    <div id="chatArea">
+        <div id="messagesContainer"></div>
+        <div id="userInputContainer">
+            <input type="text" id="userInput" placeholder="Ask a question..." required>
+            <button id="sendBtn">Send</button>
+        </div>
+    </div>
+    
+    <div id="notificationArea"></div>
+
+    <script>
+        document.getElementById('uploadForm').onsubmit = async (e) => {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            const notificationArea = document.getElementById('notificationArea');
+            const messagesContainer = document.getElementById('messagesContainer');
+
+            // Clear previous messages
+            messagesContainer.innerHTML = ''; // Clear chat history
+            notificationArea.innerHTML = '';  // Clear previous notifications
+            
+            try {
+                const response = await fetch('/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok) {
+                    document.getElementById('chatArea').style.display = 'flex';
+                    window.pdfText = result.pdf_text;  // Store PDF text for future queries
+                    notificationArea.innerHTML = `<div class="notification">PDF uploaded successfully!</div>`;
+                } else {
+                    console.error("Error response:", result);
+                    notificationArea.innerHTML = `<div class="error">${result.error || "An error occurred during upload."}</div>`;
+                }
+            } catch (error) {
+                console.error("Fetch error:", error);
+                notificationArea.innerHTML = `<div class="error">An error occurred while uploading the PDF.</div>`;
+            }
+        };
+
+        document.getElementById('sendBtn').onclick = sendMessage;
+
+        document.getElementById('userInput').addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();  // Prevent form submission
+                sendMessage();
+            }
+        });
+
+        async function sendMessage() {
+            const userInput = document.getElementById('userInput').value;
+            const notificationArea = document.getElementById('notificationArea');
+
+            if (!userInput || !window.pdfText) {
+                notificationArea.innerHTML = `<div class="error">Please enter a question and ensure the PDF is uploaded.</div>`;
+                return;
+            }
+
+            notificationArea.innerHTML = '';  // Clear previous notifications
+            appendMessage(userInput, 'user');
+
+            try {
+                const response = await fetch('/chat', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ user_input: userInput, pdf_text: window.pdfText })
+                });
+
+                if (!response.ok) {
+                    const errorText = await response.text(); // Get the raw response text
+                    console.error("Chat error response:", errorText);
+                    notificationArea.innerHTML = `<div class="error">An error occurred: ${errorText}</div>`;
+                    return;
+                }
+
+                const result = await response.json();
+                appendMessage(result.response || "No response from assistant.", 'assistant');
+            } catch (error) {
+                console.error("Fetch error:", error);
+                notificationArea.innerHTML = `<div class="error">An error occurred while sending your question.</div>`;
+            }
+
+            document.getElementById('userInput').value = '';  // Clear input field
+        }
+
+        function appendMessage(text, sender) {
+            const messagesContainer = document.getElementById('messagesContainer');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${sender}-message`;
+            messageDiv.innerText = text;
+            messagesContainer.appendChild(messageDiv);
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;  // Scroll to the bottom
+        }
+    </script>
+</body>
+</html>
