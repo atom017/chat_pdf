@@ -103,7 +103,7 @@ def generate_final_response(combined_response, user_input):
     )
     prompt_template = PromptTemplate(
         template=(
-            "Based on the following information, please summarize the key points response "
+            "Based on the following information, please summarize the key points"
             "that answer the user's question:\n\n{combined_response}\n\n"
             "User's Question: {user_input}\n\nAnswer:"
         ),
