@@ -78,18 +78,52 @@ def chat():
     # Split the PDF text into chunks using RecursiveCharacterTextSplitter
     text_chunks = text_splitter.split_text(pdf_text)
 
-    # Limit to a maximum number of chunks 
-    max_chunks = 5  
+    # Limit to a maximum number of chunks (e.g., 5 chunks)
+    max_chunks = 5
     limited_chunks = text_chunks[:max_chunks]
 
     responses = []
     for chunk in limited_chunks:
         response = chat_with_pdf(chunk, user_input)
-        responses.append(response)
+        responses.append(response.strip())
 
-    combined_response = " ".join(responses)  # Combine responses if necessary
-    return jsonify({"response": combined_response}), 200
+    # Combine all responses into a single string
+    combined_response = " ".join(responses)
 
+    # Generate a final response based on the combined responses
+    final_response = generate_final_response(combined_response, user_input)
+
+    return jsonify({"response": final_response}), 200
+
+def generate_final_response(combined_response, user_input):
+    prompt_template1 = PromptTemplate(
+        
+        template="Based on the following information, provide a concise and comprehensive answer to the user's query:\n\n{combined_response}\n\nUser: {user_input}\nAssistant:",
+        input_variables=["combined_response", "user_input"]
+    )
+    prompt_template = PromptTemplate(
+        template=(
+            "Based on the following information, please summarize the key points response "
+            "that answer the user's question:\n\n{combined_response}\n\n"
+            "User's Question: {user_input}\n\nAnswer:"
+        ),
+        input_variables=["combined_response", "user_input"]
+    )
+    
+    prompt_template2 = PromptTemplate(
+        template=(
+            "Using the information provided below, craft a concise and informative response that "
+            "addresses the user's question while incorporating the relevant details from the text:\n\n"
+            "{combined_response}\n\n"
+            "User's Question: {user_input}\n\n"
+            "Response:"
+        ),
+        input_variables=["combined_response", "user_input"]
+    )
+    llm_chain = prompt_template | llm
+    response = llm_chain.invoke({"combined_response": combined_response, "user_input": user_input})
+    
+    return response.content if hasattr(response, 'content') else str(response)
 
 if __name__ == '__main__':
     app.run(debug=True)
