@@ -4,28 +4,37 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Chat with PDF</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <style>
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Arial', sans-serif;
             margin: 20px;
             background-color: #f9f9f9;
             color: #333;
         }
+
         h1 {
             text-align: center;
             color: #4A90E2;
         }
+
         form {
             display: flex;
-            justify-content: center;
+            flex-direction: column; /* Stack vertically on small screens */
+            align-items: center; /* Center items */
             margin-bottom: 20px;
         }
+
         input[type="file"] {
-            margin-right: 10px;
+            margin-bottom: 10px; /* Add margin for better spacing */
             padding: 10px;
             border: 1px solid #ccc;
             border-radius: 5px;
+            font-size: 16px;
+            width: 100%; /* Full width */
+            max-width: 400px; /* Limit width on larger screens */
         }
+
         button {
             padding: 10px 20px;
             border: none;
@@ -34,10 +43,13 @@
             color: white;
             cursor: pointer;
             transition: background-color 0.3s;
+            font-size: 16px;
         }
+
         button:hover {
             background-color: #357ABD;
         }
+
         #chatArea {
             display: none;
             margin-top: 20px;
@@ -52,25 +64,31 @@
             margin-left: auto; /* Center the chat area */
             margin-right: auto; /* Center the chat area */
         }
+
         #messagesContainer {
             flex: 1;
             padding: 20px;
             overflow-y: auto;
             border-bottom: 1px solid #ccc; /* Separator */
         }
+
         #userInputContainer {
             display: flex;
             padding: 10px;
-            background-color: #fff;
+            background-color: #f9f9f9;
             border-top: 1px solid #ccc; /* Separator */
+            width: 100%; /* Full width */
         }
+
         #userInput {
-            flex: 1;
             padding: 10px;
             border: 1px solid #ccc;
             border-radius: 5px;
-            margin-right: 10px;
+            margin-right: 10px; /* Space between input and button */
+            font-size: 16px;
+            flex: 1; /* Allow input to take available space */
         }
+
         .message {
             margin: 10px 0;
             padding: 10px;
@@ -78,40 +96,69 @@
             max-width: 70%;
             clear: both;
         }
+
         .user-message {
             background-color: #4A90E2;
             color: white;
             float: right;
             text-align: right;
         }
+
         .assistant-message {
             background-color: #f0f0f0;
             color: black;
             float: left;
             text-align: left;
         }
+
         #notificationArea {
             color: green;
             margin: 10px 0;
             text-align: center;
         }
+
         .error {
             color: red;
+        }
+
+        .icon {
+            margin-right: 8px;
+        }
+
+        /* Media Queries for Responsiveness */
+        @media (max-width: 600px) {
+            #userInputContainer {
+                flex-direction: column; /* Stack inputs vertically on mobile */
+            }
+
+            button {
+                width: 100%; /* Make button full width on mobile */
+            }
+
+            input[type="file"] {
+                width: 100%; /* Full width input */
+            }
+        }
+
+        @media (max-width: 400px) {
+            h1 {
+                font-size: 24px; /* Adjust font size for smaller screens */
+            }
         }
     </style>
 </head>
 <body>
-    <h1>Chat with PDF</h1>
+    <h1><i class="fas fa-comments"></i> Chat with PDF</h1>
     <form id="uploadForm">
         <input type="file" name="file" accept=".pdf" required>
-        <button type="submit">Upload PDF</button>
+        <button type="submit"><i class="fas fa-upload icon"></i> Upload PDF</button>
     </form>
 
     <div id="chatArea">
         <div id="messagesContainer"></div>
         <div id="userInputContainer">
             <input type="text" id="userInput" placeholder="Ask a question..." required>
-            <button id="sendBtn">Send</button>
+            <button id="sendBtn"><i class="fas fa-paper-plane icon"></i> Send</button>
         </div>
     </div>
     
