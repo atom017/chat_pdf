@@ -6,6 +6,7 @@ from langchain.prompts import PromptTemplate
 from langchain_groq import ChatGroq
 from dotenv import load_dotenv
 from langchain.text_splitter import RecursiveCharacterTextSplitter
+from io import BytesIO
 
 app = Flask(__name__)
 
@@ -17,9 +18,9 @@ groq_api_key = os.getenv('GROQ_API_KEY')
 llm = ChatGroq(model="llama-3.1-70b-versatile", temperature=0, api_key=groq_api_key)
 
 # Function to extract text from PDF
-def extract_text_from_pdf(pdf_path):
+def extract_text_from_pdf(pdf_stream):
     text = ""
-    with fitz.open(pdf_path) as doc:
+    with fitz.open(stream=pdf_stream, filetype="pdf") as doc:
         for page in doc:
             text += page.get_text()
     return text
@@ -41,8 +42,8 @@ def chunk_text(text, max_length=1000):
     return [text[i:i + max_length] for i in range(0, len(text), max_length)]
 
 text_splitter = RecursiveCharacterTextSplitter(
-    chunk_size=1800,  # Maximum chunk size
-    chunk_overlap=200,   # No overlap between chunks
+    chunk_size=1500,  # Maximum chunk size
+    chunk_overlap=150,   # overlap between chunks
 )
 
 @app.route('/')
@@ -57,12 +58,12 @@ def upload_pdf():
     if file.filename == '':
         return jsonify({"error": "No selected file"}), 400
 
-    # Save the uploaded PDF
-    pdf_path = 'uploaded.pdf'
-    file.save(pdf_path)
+    pdf_bytes = BytesIO(file.read())
+    #pdf_path = 'uploaded.pdf'
+    file.save(pdf_bytes)
 
     # Extract text from PDF
-    pdf_text = extract_text_from_pdf(pdf_path)
+    pdf_text = extract_text_from_pdf(pdf_bytes)
     return jsonify({"message": "PDF uploaded and processed successfully.", "pdf_text": pdf_text}), 200
 
 @app.route('/chat', methods=['POST'])
@@ -81,7 +82,7 @@ def chat():
     total_length = 0
     limited_chunks = []
     for chunk in text_chunks:
-        if total_length + len(chunk) <= 3200:
+        if total_length + len(chunk) <= 4000:
             limited_chunks.append(chunk)
             total_length += len(chunk)
         else:
