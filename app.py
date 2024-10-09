@@ -78,11 +78,11 @@ def chat():
     # Split the PDF text into chunks using RecursiveCharacterTextSplitter
     text_chunks = text_splitter.split_text(pdf_text)
 
-    # Limit to a maximum of 3000 characters total
+    # Limit to a maximum of 5000 characters total
     total_length = 0
     limited_chunks = []
     for chunk in text_chunks:
-        if total_length + len(chunk) <= 4000:
+        if total_length + len(chunk) <= 5000:
             limited_chunks.append(chunk)
             total_length += len(chunk)
         else:
