@@ -78,15 +78,9 @@ def chat():
     # Split the PDF text into chunks using RecursiveCharacterTextSplitter
     text_chunks = text_splitter.split_text(pdf_text)
 
-    # Limit to a maximum of 5000 characters total
-    total_length = 0
-    limited_chunks = []
-    for chunk in text_chunks:
-        if total_length + len(chunk) <= 5000:
-            limited_chunks.append(chunk)
-            total_length += len(chunk)
-        else:
-            break  # Stop adding chunks once the limit is reached
+    # Limit to a maximum number of chunks 
+    max_chunks = 5  
+    limited_chunks = text_chunks[:max_chunks]
 
     responses = []
     for chunk in limited_chunks:
@@ -95,6 +89,7 @@ def chat():
 
     combined_response = " ".join(responses)  # Combine responses if necessary
     return jsonify({"response": combined_response}), 200
+
 
 if __name__ == '__main__':
     app.run(debug=True)
