@@ -27,14 +27,15 @@ def extract_text_from_pdf(pdf_path):
 # Function to chat with PDF
 def chat_with_pdf(pdf_text, user_input):
     prompt_template = PromptTemplate(
-        template="You are a knowledgeable assistant. Given the following PDF content, respond to the user's question: \n\n{pdf_text}\n\nUser: {user_input}\nAssistant:",
+        template="You are a knowledgeable assistant. Please answer the user's question concisely and insightfully, without referring to any external text.: \n\n{pdf_text}\n\nUser: {user_input}\nAssistant:",
         input_variables=["pdf_text", "user_input"]
     )
     
     # Correct usage of LLMChain with keyword arguments
-    llm_chain = LLMChain(llm=llm, prompt=prompt_template)
-    response = llm_chain.run({"pdf_text": pdf_text, "user_input": user_input})  # Use a dict for inputs
-    return response
+    llm_chain = prompt_template | llm
+    response = llm_chain.invoke({"pdf_text": pdf_text, "user_input": user_input})
+    response_text = response.content if hasattr(response, 'content') else str(response)
+    return response_text
 
 def chunk_text(text, max_length=1000):
     return [text[i:i + max_length] for i in range(0, len(text), max_length)]
