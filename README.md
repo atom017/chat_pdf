@@ -20,8 +20,9 @@ The **Chat with PDF** app allows users to upload PDF documents and interact with
 - **Flask**: Web framework for building the application.
 - **PyMuPDF (fitz)**: Library for extracting text from PDF files.
 - **LangChain**: Framework for managing interactions with language models.
-- **ChatGroq**: Integration with Groq's language model.
+- **ChatGroq**: Integration with Groq; Fast AI Interface.
 - **dotenv**: For managing environment variables.
+- **LLama 3**: Used Llama 3 LLM. 
 
 ## Getting Started
 
